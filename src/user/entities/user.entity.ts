@@ -1,3 +1,5 @@
+import { Exclude } from 'class-transformer';
+import { Comment } from 'src/comment/entities/comment.entity';
 import { Post } from 'src/post/entities/post.entity';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToMany, UpdateDateColumn } from 'typeorm';
 
@@ -28,6 +30,8 @@ export class User {
   email: string;
 
   @Column()
+  // @Exclude()
+  // setup ẩn
   password: string;
 
   @Column({ nullable: true, default: null })
@@ -50,4 +54,8 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[]
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[]
+  
 }

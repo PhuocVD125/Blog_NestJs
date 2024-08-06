@@ -1,15 +1,47 @@
-// import { Category } from "src/category/entities/category.entity";
+import { IsString, IsOptional, IsEnum, IsNotEmpty, IsArray, IsInt } from 'class-validator';
 
-import { Category } from "src/category/entities/category.entity";
+export enum PostStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  SUSPENDED = 'suspended',
+  PENDING = 'pending',
+  DELETED = 'deleted',
+}
 
 export class UpdatePostDto {
-    title: string;
+  @IsString()
+  @IsOptional()
+  title?: string;
 
-    description: string;
+  @IsString()
+  @IsOptional()
+  description?: string;
 
-    thumbnail: string;
+  @IsString()
+  @IsOptional()
+  thumbnail?: string;
 
-    status: string;
+  @IsEnum(PostStatus)
+  @IsOptional()
+  status?: PostStatus;
 
-    category: Category;
+  @IsString()
+  @IsOptional()
+  slug?: string;
+
+  @IsString()
+  @IsOptional()
+  content?: string;
+
+  @IsString()
+  @IsOptional()
+  meta_title?: string;
+
+  @IsString()
+  @IsOptional()
+  summary?: string;
+
+  @IsArray()
+  @IsOptional()
+  categoryIds?: string[];
 }

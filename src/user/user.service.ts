@@ -1,4 +1,4 @@
-import { Delete, Injectable } from '@nestjs/common';
+import { Delete, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, In, Like, Repository, UpdateResult } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -6,15 +6,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
-import { query } from 'express';
-import { resolve } from 'path';
+import { PermissionUser } from 'src/helpers/checkPermissionUser';
+import { plainToClass } from 'class-transformer';
+import { ResponseUserDTO } from './dto/response-user.dto';
+import { UpdateRoleUserDto } from './dto/update-role-user.dto';
 
 @Injectable()
 export class UserService {
 
     constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
 
-    async findAll(query: FilterUserDto): Promise<any> {
+    async findAll(query: FilterUserDto) {
+
         const items_per_page = Number(query.items_per_page) || 10;
         const page = Number(query.page) || 1;
         const skip = (page - 1) * items_per_page;
@@ -28,7 +31,7 @@ export class UserService {
             // order: {created_at: "DESC"},
             take: items_per_page,
             skip: skip,
-            select: ['id', 'first_name', 'last_name', 'email', 'status', 'created_at', 'updated_at']
+            select: ['id', 'first_name', 'last_name', 'email', 'phone_number', 'status', 'role', 'created_at', 'updated_at']
         })
 
         const lastPage = Math.ceil(total / items_per_page);
@@ -50,8 +53,10 @@ export class UserService {
     }
 
 
-    async findOne(id: number): Promise<User> {
-        return await this.userRepository.findOneBy({id});
+    async findOne(id: number) {
+        const user = await this.userRepository.findOneBy({ id });
+        // Sử dụng plainToClass để chuyển đổi từ entity sang DTO
+        return plainToClass(ResponseUserDTO, user, { excludeExtraneousValues: true });
     }
 
 
@@ -60,11 +65,14 @@ export class UserService {
         return await this.userRepository.save(createUserDto);
     }
 
-    async update(id: number, updateUserDto: UpdateUserDto): Promise<UpdateResult> {
+    async updateInfoUser(id: number, updateUserDto: UpdateUserDto, currentUser: User): Promise<UpdateResult> {
+        // TODO check ton tai
+        PermissionUser.check(id, currentUser);
         return await this.userRepository.update(id, updateUserDto);
     }
 
     async delete(id: number): Promise<DeleteResult> {
+        // TODO check ton tai
         return await this.userRepository.delete(id);
     }
 
@@ -72,7 +80,42 @@ export class UserService {
         return await this.userRepository.delete({id: In(ids)});
     }
 
-    async updateAvatar(id: number, avatar: string): Promise<UpdateResult> {
+    async updateAvatar(id: number, avatar: string, currentUser: User): Promise<UpdateResult> {
+        PermissionUser.check(id, currentUser);
         return await this.userRepository.update(id, {avatar});
     }
+    async updateUserStatus(id: number, updateStatusDto: UpdateUserDto) {
+        // Tìm người dùng theo ID
+        const user = await this.userRepository.findOneBy({ id });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${id} not found`);
+        }
+
+        // Cập nhật trạng thái
+        user.status = updateStatusDto.status;
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        await this.userRepository.save(user);
+
+        return plainToClass(ResponseUserDTO, user, { excludeExtraneousValues: true });
+    }
+
+    async updateUserRole(id: number, updateRoleDto: UpdateRoleUserDto) {
+        // Tìm người dùng theo ID
+        const user = await this.userRepository.findOneBy({ id });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${id} not found`);
+        }
+
+        // Cập nhật trạng thái
+        user.role = updateRoleDto.role;
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        await this.userRepository.save(user);
+
+        return plainToClass(ResponseUserDTO, user, { excludeExtraneousValues: true });
+    }
+
 }

@@ -8,6 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PostModule } from './post/post.module';
 import { CategoryModule } from './category/category.module';
+import { TagModule } from './tag/tag.module';
+import { CommentModule } from './comment/comment.module';
+import { SeriesModule } from './series/series.module';
 
 @Module({
   imports: [
@@ -16,7 +19,10 @@ import { CategoryModule } from './category/category.module';
     AuthModule,
     ConfigModule,
     PostModule,
-    CategoryModule
+    CategoryModule,
+    TagModule,
+    CommentModule,
+    SeriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

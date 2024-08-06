@@ -1,20 +1,48 @@
-import { IsNotEmpty } from "class-validator";
-import { Category } from "src/category/entities/category.entity";
-import { User } from "src/user/entities/user.entity";
+import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsObject, IsEnum, IsOptional, IsInt, IsArray } from 'class-validator';
+import { Category } from 'src/category/entities/category.entity';
+
+export enum PostStatus {
+    ACTIVE = 'active',
+    INACTIVE = 'inactive',
+    SUSPENDED = 'suspended',
+    PENDING = 'pending',
+    DELETED = 'deleted',
+  }
 
 export class CreatePostDto {
-    @IsNotEmpty()
-    title: string;
+  @IsString()
+  @IsNotEmpty()
+  title: string;
 
-    @IsNotEmpty()
-    description: string;
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-    thumbnail: string;
+  thumbnail: string;
 
-    status: string;
+  @IsEnum(PostStatus)
+  @IsNotEmpty()
+  status: PostStatus;
 
-    user: User;
+  @IsString()
+  @IsNotEmpty()
+  slug: string;
 
-    // @IsNotEmpty()
-    category: Category;
+
+  @IsString()
+  @IsOptional()
+  content?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  meta_title: string;
+
+  @IsString()
+  @IsOptional()
+  summary?: string;
+
+  @IsArray()
+  @IsOptional()
+  categoryIds?: string[];
 }

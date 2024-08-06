@@ -4,7 +4,7 @@ export class RegisterUserDto {
     
     @IsNotEmpty()
     @ApiProperty()
-    frist_name: string;
+    first_name: string;
 
     @ApiProperty()
     @IsNotEmpty()
@@ -26,4 +26,6 @@ export class RegisterUserDto {
     @ApiProperty()
     @IsNotEmpty()
     status: string;
+
+    role: string
 }

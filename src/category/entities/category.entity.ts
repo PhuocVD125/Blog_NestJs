@@ -1,19 +1,29 @@
 import { Post } from "src/post/entities/post.entity";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-@Entity()
+@Entity('categories')
 export class Category {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column()
-    name:string;
-
-    @Column()
     description:string;
 
-    @Column({type:"int", default:1})
-    status:number;
+    @Column()
+    title:string;
+
+    @Column()
+    meta_title:string;
+
+    @Column()
+    slug:string;
+
+    @Column({
+        type: 'enum',
+        enum: ['active', 'inactive', 'suspended', 'pending', 'deleted'],
+        default: 'active'
+    })
+    status: string;
 
     @CreateDateColumn()
     created_at:Date;
@@ -21,7 +31,17 @@ export class Category {
     @UpdateDateColumn()
     updated_at:Date;
 
-    @OneToMany(()=>Post, (post) => post.category)
-    posts:Post[]
-
+    @ManyToMany(() => Post, (post) => post.categories)
+    @JoinTable({
+      name: 'category_posts', // Tên của bảng trung gian
+      joinColumn: {
+        name: 'category_id',
+        referencedColumnName: 'id',
+      },
+      inverseJoinColumn: {
+        name: 'post_id',
+        referencedColumnName: 'id',
+      },
+    })
+    posts: Post[];
 }

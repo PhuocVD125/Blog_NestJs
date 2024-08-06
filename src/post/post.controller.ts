@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, Post, Param, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { PostService } from './post.service';
 import { FilterPostDto } from './dto/filter-post.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -8,14 +8,18 @@ import { extname } from 'path';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post as PostEntity } from './entities/post.entity';
+import { RolesGuard } from 'src/auth/guard/role.guard';
+import { CurrentUser } from 'src/user/decorators/currentUser.decorator';
+import { Roles } from 'src/auth/decorators/role.decorator';
 
-@Controller('post')
+@Controller('posts')
+@UseGuards(AuthGuard, RolesGuard)
 export class PostController {
 
-    constructor(private postService: PostService) {}
+    constructor(private postService: PostService) { }
 
 
-    @UseGuards(AuthGuard)
+    // @Roles("admin", "user")
     @UsePipes(ValidationPipe)
     @Post()
     @UseInterceptors(FileInterceptor('thumbnail', {
@@ -35,13 +39,13 @@ export class PostController {
                     cb(null, true);
                 }
             }
+            
         }
     }))
     create(@Req() req: any, @Body() createPostDto: CreatePostDto, @UploadedFile() file: Express.Multer.File) {
         console.log(req['user_data']);
         console.log(createPostDto);
         console.log(file);
-
         if (req.fileValidationError) {
             throw new BadRequestException(req.fileValidationError);
         }
@@ -51,21 +55,24 @@ export class PostController {
 
         return this.postService.create(req['user_data'].id, { ...createPostDto, thumbnail: file.destination + '/' + file.filename });
     }
-    
 
-    @UseGuards(AuthGuard)
+    // TODO thay đổi status bài viết
+
+    @Roles("admin", "user")
     @Get()
     findAll(@Query() query: FilterPostDto): Promise<any> {
         return this.postService.findAll(query);
     }
+    
 
-    @UseGuards(AuthGuard)
+
+    @Roles("admin", "user")
     @Get(':id')
     findDetail(@Param('id') id: string): Promise<PostEntity> {
-        return this.postService.findDetail(Number(id));
+        return this.postService.findDetail(+id); // number 
     }
 
-    @UseGuards(AuthGuard)
+    @Roles("admin", "user")
     @Put(':id')
     @UseInterceptors(FileInterceptor('thumbnail', {
         storage: storageConfig('post'),
@@ -86,7 +93,7 @@ export class PostController {
             }
         }
     }))
-    update(@Param('id') id: string, @Req() req: any, @Body() updatePostDto: UpdatePostDto, @UploadedFile() file: Express.Multer.File) {
+    update(@Param('id') id: string, @Req() req: any, @Body() updatePostDto: UpdatePostDto, @UploadedFile() file: Express.Multer.File, @CurrentUser() CurrentUser) {
         if (req.fileValidationError) {
             throw new BadRequestException(req.fileValidationError)
         }
@@ -95,12 +102,12 @@ export class PostController {
             updatePostDto.thumbnail = file.destination + '/' + file.filename;
         }
 
-        return this.postService.update(Number(id), updatePostDto)
+        return this.postService.update(Number(id), updatePostDto, CurrentUser);
     }
 
-    @UseGuards(AuthGuard)
+    @Roles("admin", "user")
     @Delete(':id')
-    delete(@Param('id') id: string) {
-        return this.postService.delete(Number(id))
+    delete(@Param('id') id: string, @CurrentUser() currentUser) {
+        return this.postService.delete(Number(id), currentUser)
     }
 }

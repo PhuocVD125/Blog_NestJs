@@ -1,6 +1,7 @@
 import { Category } from "src/category/entities/category.entity";
+import { Comment } from "src/comment/entities/comment.entity";
 import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('posts')
 export class Post {
@@ -35,9 +36,9 @@ export class Post {
     // url cơ bản
     @Column()
     slug: string;
-
+    
     @Column()
-    body: string;
+    content: string;
 
     // url chuẩn seo
     @Column()
@@ -64,6 +65,9 @@ export class Post {
     })
     user: User;
 
-    @ManyToOne(() => Category, (category) => category.posts)
-    category: Category;
+    @ManyToMany(() => Category, (category) => category.posts)
+    categories: Category[];
+
+    @OneToMany(() => Comment, (comment) => comment.post)
+    comments: Comment[]
 }

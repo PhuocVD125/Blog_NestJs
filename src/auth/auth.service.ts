@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -55,7 +55,7 @@ export class AuthService {
         }
 
         // generate access token and refresh token
-        const payload = { id: user.id, email: user.email };
+        const payload = { id: user.id, email: user.email, role: user.role };
         return this.generateToken(payload);
     }
 
@@ -72,7 +72,7 @@ export class AuthService {
             throw new HttpException('Refresh_token is not valid', HttpStatus.BAD_REQUEST);
         }
 
-        return this.generateToken({ id: verify.id, email: verify.email });
+        return this.generateToken({ id: verify.id, email: verify.email, role: verify.role });
     }
 
     // bổ sung
@@ -87,33 +87,23 @@ export class AuthService {
 
     // bảo mật token: trình duyệt lưu vào cookie http only 
 
-    // private async generateToken(payload: { id: number, email: string }) {
-    //     const access_token = await this.jwtService.signAsync(payload);
-    //     const refresh_token = await this.jwtService.signAsync(payload, {
-    //         secret: this.configService.get<string>('SECRET'),
-    //         expiresIn: this.configService.get<string>('EXP_IN_REFRESH_TOKEN')
-    //     })
-
-    //     await this.userRepository.update(
-    //         { email: payload.email },
-    //         { refresh_token: refresh_token }
-    //     )
-
-    //     return { access_token, refresh_token };
-    // }
-
-    private async generateToken(payload: { id: number, email: string }) {
+    private async generateToken(payload: { id: number, email: string, role: string }) {
         const refreshExpiresIn = this.configService.get<string>('EXP_IN_REFRESH_TOKEN');
+        const accessExpiresIn = this.configService.get<string>('EXP_IN_ACCESS_TOKEN');
+
+
         const access_token = await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('SECRET'),
-            expiresIn: refreshExpiresIn
+            expiresIn: accessExpiresIn
         });
-        console.log('Refresh Token Expires In:', refreshExpiresIn);
 
         const refresh_token = await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('SECRET'),
             expiresIn: refreshExpiresIn
         });
+
+        console.log('Refresh Token Expires In:', refreshExpiresIn);
+
 
         await this.userRepository.update(
             { email: payload.email },
@@ -131,4 +121,6 @@ export class AuthService {
 
         return hash;
     }
+
+
 }
