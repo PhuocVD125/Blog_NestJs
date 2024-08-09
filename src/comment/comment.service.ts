@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Post } from 'src/post/entities/post.entity';
-import { Repository } from 'typeorm/repository/Repository';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PermissionComment } from 'src/helpers/checkPermissionComment';
 import { Comment } from './entities/comment.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CommentService {
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Post) private postRepository: Repository<Post>,
-        @InjectRepository(Comment)  private commentRepository: Repository<Comment>
+        @InjectRepository(Comment) private commentRepository: Repository<Comment>
 
     ) { }
 
@@ -78,6 +78,10 @@ export class CommentService {
             throw new NotFoundException('Post not found');
         }
 
-        return this.commentRepository.find({ where: { post: post }, relations: ['user'] });
+        const res = await this.commentRepository.find({
+            where: { post: { id: post.id } }, // Sử dụng post.id
+        });
+        console.log(res);
+        return res;
     }
 }

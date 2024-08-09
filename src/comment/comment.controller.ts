@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
 import { RolesGuard } from 'src/auth/guard/role.guard';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CurrentUser } from 'src/user/decorators/currentUser.decorator';
+import { AuthGuard } from 'src/auth/guard/auth.guard';
 
 @Controller('comments')
 @UseGuards(AuthGuard, RolesGuard)

@@ -1,6 +1,4 @@
-import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { Post } from "src/post/entities/post.entity";
 
 export enum CommentStatus {
     ACTIVE = 'active',
@@ -20,8 +18,4 @@ export class CreateCommentDto {
     @IsInt()
     @IsNotEmpty()
     postId: number;
-
-    @IsInt()
-    @IsNotEmpty()
-    userId: number;
 }
